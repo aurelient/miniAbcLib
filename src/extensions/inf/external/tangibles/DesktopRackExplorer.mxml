@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+         xmlns:s="library://ns.adobe.com/flex/spark" 
+         xmlns:mx="library://ns.adobe.com/flex/mx"
+         width="{Rack.Width}" height="{Rack.Height}" creationComplete="rExplorer_creationCompleteHandler(event)" xmlns:tangibles="extensions.inf.external.tangibles.*">
+  
+  <fx:Declarations>
+    <!-- Place non-visual elements (e.g., services, value objects) here -->
+  </fx:Declarations>
+  
+  <fx:Script>
+    <![CDATA[
+      import extensions.inf.external.tangibles.data.GridRack;
+      import extensions.inf.external.tangibles.data.Tube;
+      import extensions.inf.external.tangibles.events.RackEvent;
+      import extensions.inf.external.tangibles.events.TubeEvent;
+      
+      import flash.utils.getDefinitionByName;
+      
+      import mx.controls.Alert;
+      import mx.events.CloseEvent;
+      import mx.events.FlexEvent;
+      import mx.formatters.DateFormatter;
+      
+      import spark.events.TextOperationEvent;
+      
+      [Bindable] 
+      private var rack:GridRack;
+      
+      [Bindable] 
+      private var attached:Boolean = false;
+      
+      private var color:uint = 0x000000;
+      
+      [Bindable] 
+      private var formatter:DateFormatter;
+      
+      [Bindable]
+      private var sTube:Tube = null;
+      
+      private var sTubeCap:TubeCap = null;
+      
+      [Bindable]
+      public function get Rack():GridRack
+      {
+        return rack;
+      }
+      
+      public function set Rack(value:GridRack):void
+      {
+        rack = value;
+      }
+      
+      protected function gClose_clickHandler(event:MouseEvent):void
+      {
+        dispatchEvent(new RackEvent(RackEvent.CLOSED, Rack));
+      }
+      
+      protected function rExplorer_creationCompleteHandler(event:FlexEvent):void
+      {
+        addEventListener(TubeEvent.OPEN, tubeOpen);
+        addEventListener(TubeEvent.CLOSED, tubeClosed);
+        addEventListener(TubeEvent.DELETED, tubeDeleted);
+        
+        formatter = new DateFormatter();
+        formatter.formatString = "DD/MMM/YYYY H:NN";
+      }
+      
+      private function tubeOpen(event:TubeEvent):void
+      {
+        gMainMenu.visible = false;
+        gMainScreen.visible = false;
+        
+        gTubeDetail.visible = true;
+        gTubeMenu.visible = true;
+        
+        sTubeCap = event.target as TubeCap;
+        sTube = event.TargetTube;
+        if(sTube.IsNew)
+        {
+          sTube.IsNew = false;
+          sTube.DateCreated = new Date();
+        }
+        
+        dCanvas.Enabler.Palette = null;
+        dCanvas.Enabler.Lines = sTube.LidMarker;
+        dCanvas.Enabler.Colors = sTube.MarkerColors;
+        dCanvas.invalidateDisplayList();
+      }
+      
+      private function tubeClosed(event:TubeEvent):void
+      {
+        if(sTubeCap != null)
+          sTubeCap.dCanvas.invalidateDisplayList();
+        
+        gTubeDetail.visible = false;
+        gTubeMenu.visible = false;
+        
+        gMainMenu.visible = true;
+        gMainScreen.visible = true;
+        
+        sTube = null;
+        sTubeCap = null;
+      }
+      
+      private function tubeDeleted(event:TubeEvent):void
+      {
+        if(sTubeCap != null)
+          sTubeCap.dCanvas.invalidateDisplayList();
+        
+        sTube.IsNew = true;
+        sTube.LidMarker.removeAll();
+        sTube.MarkerColors.removeAll();
+      }
+      
+      protected function gTubeBack_clickHandler(event:MouseEvent):void
+      { 
+        dispatchEvent(new TubeEvent(TubeEvent.CLOSED, sTube, true));
+      }
+      
+      protected function gTubeDelete_clickHandler(event:MouseEvent):void
+      {
+        var alertR:Alert = Alert.show("Are you sure you want to delete this tube?", 
+          "Confirm Delete", Alert.YES|Alert.NO, null, deleteTubeCallback);
+      }
+      
+      private function deleteTubeCallback(event:CloseEvent):void 
+      {
+        if(Alert.YES == event.detail)
+        {
+          dispatchEvent(new TubeEvent(TubeEvent.DELETED, sTube, true));
+          gTubeBack_clickHandler(null);
+        }
+      }
+      
+      protected function gTubeUndo_clickHandler(event:MouseEvent):void
+      {
+        if(sTube != null && sTube.LidMarker.length > 0)
+          sTube.LidMarker.removeItemAt(sTube.LidMarker.length-1);
+        dCanvas.invalidateDisplayList();
+      }
+      
+      public function set Color(iColor:uint):void
+      {
+        color = iColor;
+      }
+      
+      public function get Color():uint
+      {
+        return color;
+      }
+      
+      protected function taNotes_changeHandler(event:TextOperationEvent):void
+      {
+        sTube.Notes = taNotes.text;
+      }
+
+      protected function tbTubeName_changeHandler(event:TextOperationEvent):void
+      {
+        sTube.Name = tbTubeName.text;
+      }
+    ]]>
+  </fx:Script>
+  
+  <s:Rect id="rRack" width="100%" height="100%" horizontalCenter="0" verticalCenter="0"
+          topLeftRadiusX="5" topLeftRadiusY="5" topRightRadiusX="5" topRightRadiusY="5"
+          bottomLeftRadiusX="0" bottomLeftRadiusY="0" bottomRightRadiusX="0" bottomRightRadiusY="0">
+    <s:stroke>
+      <s:SolidColorStroke id="bShadow" color="0xFF0000" weight="5"/>
+    </s:stroke>
+    <s:fill>
+      <s:SolidColor color="0xCCCCCC" />
+    </s:fill>
+  </s:Rect>
+  
+  <s:Group id="gMainScreen" width="100%" height="100%" horizontalCenter="0" verticalCenter="0">
+    <s:DataGroup id="dgTubes" dataProvider="{Rack.Tubes}" itemRenderer="extensions.inf.external.tangibles.TubeCap"
+                 width="{Rack.Width}" height="{Rack.Height}" >
+      <s:layout>
+        <s:TileLayout horizontalGap="0" verticalGap="0" orientation="rows" requestedColumnCount="{Rack.Columns}" requestedRowCount="{Rack.Rows}"/>
+      </s:layout>
+    </s:DataGroup>
+  </s:Group>
+  
+  <s:Group id="gMainMenu" width="{Rack.Width}" bottom="-30">
+    <s:Rect id="rMainMenu" width="{Rack.Width}" height="30"
+            topLeftRadiusX="0" topLeftRadiusY="0" topRightRadiusX="0" topRightRadiusY="0"
+            bottomLeftRadiusX="5" bottomLeftRadiusY="5" bottomRightRadiusX="5" bottomRightRadiusY="5">
+      <s:fill>
+        <s:SolidColor color="0xDDDDDD" />
+      </s:fill>
+    </s:Rect>
+  </s:Group>
+  
+  <s:Group id="gTubeDetail" width="100%" height="100%" visible="false">
+    <s:Group id="gTubeDetailMain" width="150" height="100%" left="0">
+      <s:Ellipse width="100" height="100" verticalCenter="-20" horizontalCenter="0"> 
+        <s:stroke>
+          <s:SolidColorStroke color="0x0000" weight="1"/>
+        </s:stroke>
+        <s:fill>
+          <s:SolidColor color="0xFFFFFF" />
+        </s:fill>
+      </s:Ellipse>
+      <tangibles:DrawableCanvas id="dCanvas" width="100" height="100" verticalCenter="-20" horizontalCenter="0" backgroundColor="#FFFFFF" backgroundAlpha="0"/>
+      
+      <s:TextInput id="tbTubeName" horizontalCenter="0" bottom="35" text="{this.sTube.Name}" fontSize="15" fontWeight="bold" change="tbTubeName_changeHandler(event)" width="{gTubeDetailMain.width - 20}"/>
+      <s:Label horizontalCenter="0" bottom="15" text="{formatter.format(this.sTube.DateCreated)}" fontSize="15" fontWeight="bold"/>
+    </s:Group>
+    
+    <s:Group id="gTubeDetailNotes" left="150" height="100%">
+      <s:TextArea id="taNotesLabel" text="Notes" top="10" borderColor="0x000000" borderVisible="true" editable="false" contentBackgroundAlpha="0"
+                  height="20" width="50"/>
+      <s:TextArea id="taNotes" text="{this.sTube.Notes}" bottom="{bShadow.weight}" borderColor="0x000000" borderVisible="true" 
+                  change="taNotes_changeHandler(event)"
+                  width="{gTubeDetail.width - (gTubeDetailMain.width + bShadow.weight)}"
+                  height="{gTubeDetail.height - 2*bShadow.weight - taNotesLabel.height - taNotesLabel.y/2 + 1}"/>
+    </s:Group>
+  </s:Group>
+  
+  <s:Group id="gTubeMenu" width="{Rack.Width}" bottom="-30" visible="false">
+    <s:Rect id="rTubeMenu" width="{Rack.Width}" height="30"
+            topLeftRadiusX="0" topLeftRadiusY="0" topRightRadiusX="0" topRightRadiusY="0"
+            bottomLeftRadiusX="5" bottomLeftRadiusY="5" bottomRightRadiusX="5" bottomRightRadiusY="5">
+      <s:fill>
+        <s:SolidColor color="0xDDDDDD" />
+      </s:fill>
+    </s:Rect>
+    <s:Group id="gTubeBack" width="25" height="25" top="2" right="2" click="gTubeBack_clickHandler(event)">
+      <s:Ellipse width="25" height="25">
+        <s:fill>
+          <s:SolidColor color="0xFF0000" />
+        </s:fill>
+      </s:Ellipse>
+      <s:Label text="&#171;" color="0xFFFFFF" horizontalCenter="0" verticalCenter="0" fontSize="15" fontWeight="bold"/>
+    </s:Group>
+    
+    <s:Group id="gTubeDelete" width="25" height="25" top="2" left="2" click="gTubeDelete_clickHandler(event)">
+      <s:Graphic x="0" y="0">
+        <s:BitmapImage source="@Embed('images/trash.png')" width="{gTubeDelete.width}" height="{gTubeDelete.height}" />
+      </s:Graphic>
+    </s:Group>
+  </s:Group>
+  
+</s:Group>

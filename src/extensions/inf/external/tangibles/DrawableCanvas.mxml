@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009" 
+           xmlns:s="library://ns.adobe.com/flex/spark" 
+           xmlns:mx="library://ns.adobe.com/flex/mx"
+           creationComplete="canvas1_creationCompleteHandler(event)">
+  <fx:Declarations>
+    <!-- Place non-visual elements (e.g., services, value objects) here -->
+  </fx:Declarations>
+  
+  <fx:Script>
+    <![CDATA[
+      import mx.events.FlexEvent;
+      public var lineWidth:Number = 5;
+      public var lineColour:uint = 1;
+      public var lineAlpha:Number = 1;
+      
+      private var enabler:DrawingObject;
+      
+      protected override function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+      {
+        super.updateDisplayList(unscaledWidth, unscaledHeight);
+        if( enabler != null )
+          enabler.drawLines(graphics, lineWidth, lineColour, lineAlpha);
+      }
+
+      protected function canvas1_creationCompleteHandler(event:FlexEvent):void
+      {
+        enabler = new DrawingObject(this);
+      }
+      
+      public function get Enabler():DrawingObject
+      {
+        return enabler;
+      }
+      
+    ]]>
+  </fx:Script>
+  
+</mx:Canvas>

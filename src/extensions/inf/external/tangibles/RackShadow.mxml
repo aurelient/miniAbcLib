@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+          xmlns:s="library://ns.adobe.com/flex/spark" 
+          xmlns:mx="library://ns.adobe.com/flex/mx" 
+          xmlns:tangibles="extensions.inf.external.tangibles.*"
+          creationComplete="itemrenderer1_creationCompleteHandler(event)"
+          gap="20">
+  
+  <fx:Script>
+    <![CDATA[
+      import com.adobe.air.filesystem.FileMonitor;
+      import com.adobe.air.filesystem.events.FileMonitorEvent;
+      
+      import extensions.inf.external.tangibles.data.GridRack;
+      import extensions.inf.external.tangibles.events.RackEvent;
+      import extensions.inf.external.tangibles.events.TubeEvent;
+      
+      import mx.core.UIComponent;
+      import mx.events.FlexEvent;
+      
+      import spark.primitives.supportClasses.FilledElement;
+      
+      private var tColors:Timer = new Timer(200);
+      
+      private const BORDER_COLOR:uint = 0x707070; 
+      private var _data:GridRack;
+      private var _UIWidth:Number;
+      private var _UIHeight:Number;
+      private var _explorerOpen:Boolean = false;
+      private var _rackOpen:Boolean = false;
+      
+      
+      
+      /**
+       * Use this to get the actual height in pixels. 
+       * */
+      [Bindable]
+      public function get UIHeight():Number
+      {
+        return _UIHeight;
+      }
+      
+      public function set UIHeight(value:Number):void
+      {
+        _UIHeight = value;
+      }
+      
+      /**
+       * Use this to get the actual width size in pixels. 
+       * */
+      [Bindable]
+      public function get UIWidth():Number
+      {
+        return _UIWidth;
+      }			    
+      
+      
+      public function set UIWidth(value:Number):void
+      {
+        _UIWidth = value;
+      }
+      
+      [Bindable]
+      public function get data():GridRack
+      {
+        return _data;		
+      }
+      
+ 
+      public function set data(value:GridRack):void
+      {
+        _data = value        
+        this.updateUISize();	
+      }
+      
+      public function toggleNameFieldEditable(editable:Boolean):void
+      {
+        rExplorer.toggleNameFieldEditable(editable);
+      }
+      
+      private function updateUISize():void
+      {
+        var oldWidth:Number = this.UIWidth;
+        var oldHeight:Number = this.UIHeight;
+        this.UIWidth = 1; 
+        this.UIHeight = 0;
+        
+        if (gShadow.visible)			
+          this.UIWidth  += OrientedWidth(FixOrientation(data.Rotation)) + bShadow.weight;							
+        
+        this.UIHeight += OrientedHeight(FixOrientation(data.Rotation)) - 10;
+        
+        if (rExplorer.visible)
+          this.UIWidth += OrientedComponentWidth(rExplorer, FixOrientation(data.Rotation));
+        
+        if (rExplorer.visible && gShadow.visible)
+          this.UIWidth += bShadow.weight/2;
+        
+        if (oldWidth != this.UIWidth || oldHeight != this.UIHeight)
+        {
+          dispatchEvent(new RackEvent(RackEvent.RESIZED));
+        }
+      }
+      
+      protected function itemrenderer1_creationCompleteHandler(event:FlexEvent):void
+      {
+        
+        tColors.addEventListener(TimerEvent.TIMER, colorsCallback);
+        openExplorer();
+        dispatchEvent(new Event(Event.COMPLETE, true, true));				
+      }
+      
+      protected function tabButton_clickHandler(event:MouseEvent):void
+      {
+        openExplorer();
+        dispatchEvent(new RackEvent(RackEvent.OPEN, data as GridRack));
+      }
+      
+      private function colorsCallback(event:TimerEvent):void
+      {
+        if(event.currentTarget != tColors)
+          return;
+        
+        tColors.stop();							
+      }
+      
+      private function rackClosed(event:RackEvent):void
+      {
+        closeExplorer();
+      }
+      
+      public function closeExplorer():void
+      {
+        bShadow.color =BORDER_COLOR;
+        rExplorer.includeInLayout = false;
+        rExplorer.visible = false;
+        _explorerOpen = false;
+        this.updateUISize();
+      }
+      
+      public function openExplorer():void
+      {
+        _explorerOpen = true;
+        bShadow.color = BORDER_COLOR;
+        rExplorer.includeInLayout = true;
+        rExplorer.visible = true;
+        tColors.start();
+        
+        this.updateUISize();
+        
+      }
+      
+      public function closeShadow():void
+      {								
+        gShadow.includeInLayout = false;
+        gShadow.visible = false;
+        _rackOpen = false;			
+        this.updateUISize();
+      }
+      
+      public function openShadow():void
+      {				
+        gShadow.includeInLayout = true;
+        gShadow.visible= true;
+        
+        _rackOpen = true;
+        this.updateUISize();
+      }
+      
+      public function isExplorerVisible():Boolean
+      {
+        return _explorerOpen;
+      }
+      
+      public function isShadowVisible():Boolean
+      {
+        return _rackOpen;
+      }
+      
+      public function SaveData():void
+      {
+        rExplorer.Rack.SaveGridRack(rExplorer.Rack.getDataFile());  
+      }
+      
+      public function FixOrientation(rotation:Number):Number
+      {
+        if(rotation >= 0 && rotation < 90)
+          return 0;
+        if(rotation >= 90 && rotation < 180)
+          return 90;
+        if(rotation >= 180 && rotation < 270)
+          return 180;
+        if(rotation >= 270)
+          return 270;
+        return 0;
+      }
+      
+      public function OrientedWidth(rotation:Number):Number
+      {
+        if((rotation >= 0 && rotation < 90) || (rotation >= 180 && rotation < 270))
+          return this.data.Width;
+        else
+          return this.data.Height;
+      }
+      
+      public function OrientedComponentWidth(component:UIComponent, rotation:Number):Number
+      {
+        if((rotation >= 0 && rotation < 90) || (rotation >= 180 && rotation < 270))
+          return component.width;
+        else
+          return component.height;
+      }
+      
+      public function OrientedHeight(rotation:Number):Number
+      {
+        if((rotation >= 0 && rotation < 90) || (rotation >= 180 && rotation < 270))
+          return this.data.Height;
+        else
+          return this.data.Width;
+      }
+    ]]>
+  </fx:Script>
+  
+  <s:Group id="gShadow" visible="false" width="{data.Width+bShadow.weight/2}" height="{data.Height}" includeInLayout="false" rotation="{FixOrientation(data.Rotation)}">
+    <s:Rect id="rRack" x="{bShadow.weight/2}" y="{bShadow.weight/2}" radiusX="2" radiusY="2" width="{data.Width}" height="{data.Height}">
+      <s:stroke>
+        <s:SolidColorStroke id="bShadow" color="{BORDER_COLOR}" weight="20"/>
+      </s:stroke>
+      <s:fill>
+        <s:SolidColor color="0xCCCCCC" />
+      </s:fill>
+    </s:Rect>
+    <s:Group id="gCenter" horizontalCenter="{bShadow.weight/2}" verticalCenter="{bShadow.weight/2}" >
+      <s:Ellipse width="30" height="30">
+        <s:stroke>
+          <s:SolidColorStroke color="0xFFFFFF" weight="2"/>
+        </s:stroke>
+        <s:fill>
+          <s:SolidColor color="0xFF0000" />
+        </s:fill>
+      </s:Ellipse>
+      <s:Label text="{data.RotationRaw}" horizontalCenter="0" verticalCenter="0"/>
+    </s:Group>
+  </s:Group>
+  
+
+  <tangibles:TableRackExplorer id="rExplorer" visible="false" Rack="{data}"  includeInLayout="false" rotation="{FixOrientation(data.Rotation)}"/>
+  
+</s:HGroup>

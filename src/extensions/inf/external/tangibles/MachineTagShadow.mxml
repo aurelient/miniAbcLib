@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+          xmlns:s="library://ns.adobe.com/flex/spark"
+          xmlns:mx="library://ns.adobe.com/flex/mx" y="{bShadow.weight/2}" x="0"
+           height="600" creationComplete="init()" gap="10" verticalAlign="bottom">
+  
+  <fx:Script>
+    <![CDATA[
+      import core.abc.MachineResource;
+      
+      import extensions.inf.external.tangibles.data.GridRack;
+      import extensions.inf.external.tangibles.data.MachineTag;
+      import extensions.inf.external.tangibles.events.RackEvent;
+      import extensions.inf.external.tangibles.events.TubeEvent;
+      
+      import mx.events.FlexEvent;
+      
+      import spark.primitives.supportClasses.FilledElement;
+      
+      private const BORDER_COLOR:uint = 0x707070;
+      
+      private var _resource:MachineResource;
+      private var _data:MachineTag;
+      private var _UIWidth:Number;
+      private var _UIHeight:Number;
+      private var _explorerOpen:Boolean = false;
+      private var _rackOpen:Boolean = false;      
+      
+      private function init():void
+      {
+        //trace(this.className, "init() - start");
+      
+        openExplorer();  
+        //openShadow();
+        this.updateUISize();
+        dispatchEvent(new Event(Event.COMPLETE, true, true));
+       
+        //trace(this.className, "init() - end");
+      }
+       
+      public function set Resource(value:MachineResource):void
+      {
+        this._resource = value;
+        if (value != null)
+          this.data = new MachineTag( uint(value.machineId) & 0xFFFF0000, uint(value.machineId) & 0x0000FFFF, value.localPath);
+      }
+      
+      /**
+       * Use this to get the actual height in pixels. 
+       * */
+      [Bindable]
+      public function get UIHeight():Number
+      {
+        return _UIHeight;
+      }
+      
+      public function set UIHeight(value:Number):void
+      {
+        _UIHeight = value;
+      }
+      
+      /**
+       * Use this to get the actual width size in pixels. 
+       * */
+      [Bindable]
+      public function get UIWidth():Number
+      {
+        return _UIWidth;
+      }
+      
+      public function set UIWidth(value:Number):void
+      {
+        _UIWidth = value;
+      }
+      
+      [Bindable]
+      public function get data():MachineTag
+      {
+        return _data;		
+      }
+      
+      public function set data(value:MachineTag):void
+      {
+        _data = value;
+        this.updateUISize();	
+      }
+      
+      
+      public function updateUISize():void        
+      {        
+        var oldWidth:Number = this.UIWidth;
+        var oldHeight:Number = this.UIHeight;
+        
+        if (isShadowVisible())
+          this.UIWidth = this.gap + this.rRack.width + rExplorer.width;
+        else
+          this.UIWidth =  rExplorer.width - 13; // the -13 to hide the scrollbar
+        this.UIHeight = this.height;
+
+        if (oldWidth != this.UIWidth || oldHeight != this.UIHeight)
+        {
+          dispatchEvent(new RackEvent(RackEvent.RESIZED));
+          trace(this.className, "updateUISize", this.UIWidth, this.UIHeight);
+        }
+        
+//        this.UIWidth = 1; 
+//        this.UIHeight = 0;
+//        if (gContent.visible)			
+//          this.UIWidth  += this.rRack.width + bShadow.weight ;							
+//  			        
+//        this.UIHeight = this.gContent.height - ( bShadow.weight/2);
+//        
+//        if (rExplorer.visible == true)
+//        {
+//          this.UIWidth += rExplorer.width;
+//          this.UIHeight = rExplorer.height;
+//        }
+//        
+//        if (rExplorer.visible && gContent.visible)
+//          this.UIWidth += bShadow.weight/2;
+//        
+      }
+
+      
+      
+      private  function closeExplorer():void
+      {       
+//        rExplorer.includeInLayout = false;
+//        rExplorer.visible = false;
+//        _explorerOpen = false;
+       
+        this.updateUISize();
+      }
+      
+      private function openExplorer():void
+      {
+        _explorerOpen = true;
+//        rExplorer.includeInLayout = true;
+//        rExplorer.visible = true;                
+        this.updateUISize();        
+      }
+      
+      public function closeShadow():void
+      {								
+        gContent.includeInLayout = false;
+        gContent.visible = false;
+        _rackOpen = false;			        
+        this.updateUISize();
+      }
+      
+      public function openShadow():void
+      {				
+        gContent.includeInLayout = true;
+        gContent.visible= true;        
+        _rackOpen = true;        
+        this.updateUISize();
+      }
+      
+      public function isExplorerVisible():Boolean
+      {
+        return _explorerOpen;     
+      }
+      
+      public function isShadowVisible():Boolean
+      {
+        return _rackOpen;
+      }       
+      
+      public function get HtmlComponent():HTML
+      {
+        return rExplorer;
+      }
+      
+      protected function rExplorer_completeHandler(event:Event):void
+      {
+//        if (rExplorer.contentWidth > 0)
+//          if (rExplorer.contentWidth < 801)
+            rExplorer.width = rExplorer.contentWidth;
+//          else
+//            rExplorer.width = 800;
+//        
+        
+        this.updateUISize();
+      }
+
+    ]]>
+  </fx:Script>
+
+  
+  <s:Group id="gContent" >    
+    <s:Rect id="rRack" radiusX="2" radiusY="2" width="200" height="200" horizontalCenter="0" verticalCenter="0">
+      <s:stroke>
+        <s:SolidColorStroke id="bShadow" color="{BORDER_COLOR}" weight="20"/>
+      </s:stroke>
+      <s:fill>
+        <s:SolidColor color="0xCCCCCC" />
+      </s:fill>
+    </s:Rect>  
+    <s:Group id="gCenter" horizontalCenter="0" verticalCenter="0">
+      <s:Ellipse width="30" height="30">
+        <s:stroke>
+          <s:SolidColorStroke color="0xFFFFFF" weight="2"/>
+        </s:stroke>
+        <s:fill>
+          <s:SolidColor color="0xFF0000" />
+        </s:fill>      
+      </s:Ellipse>
+    </s:Group>    
+  </s:Group>
+  <mx:HTML id="rExplorer" location="http://www.google.dk" width="600" height="600" complete="rExplorer_completeHandler(event)" />
+  
+</s:HGroup>

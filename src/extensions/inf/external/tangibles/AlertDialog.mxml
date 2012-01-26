@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               width="250" height="150" close="titlewindow1_closeHandler(event)"
+               creationComplete="init()"  >
+  <fx:Declarations>
+    <!-- Place non-visual elements (e.g., services, value objects) here -->
+  </fx:Declarations>
+  <fx:Script>
+    <![CDATA[
+      import mx.events.CloseEvent;
+      import mx.managers.PopUpManager;
+
+      [Bindable]
+      private var _message:String = "";
+      private var _parent:DisplayObject;
+      
+      private function init():void
+      {
+        
+      }
+    
+      
+      public function set centerRelativeTo(value:DisplayObject):void
+      {
+        _parent = value;
+      }
+      public function get centerRelativeTo():DisplayObject
+      {
+        return _parent;
+      }
+      
+      public function set message(value:String):void
+      {
+        if (value != null)
+          _message = value;
+        else
+          _message = "";               
+      }
+      public function get message():String
+      {
+        return _message;
+      }
+      
+      public function closePopUp():void
+      {
+        PopUpManager.removePopUp(this);
+      }
+      
+      public function showPopUp():void
+      {
+         PopUpManager.addPopUp(this, _parent, true);          
+         PopUpManager.centerPopUp(this);
+      }
+
+
+      protected function titlewindow1_closeHandler(event:CloseEvent):void
+      {
+        // Attempt to override function
+        event.stopImmediatePropagation();
+      }
+
+    ]]>
+  </fx:Script>
+  <s:VGroup verticalAlign="top" height="100%" left="5" right="5" top="20" bottom="5">
+    <mx:Text id="lblMessage" width="229" fontSize="16" fontWeight="bold"
+             text="{_message}" textAlign="left"  />  
+  </s:VGroup>
+  </s:TitleWindow>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               width="500" height="500"
+			   
+               creationComplete="init()"  >
+  <fx:Declarations>
+    <!-- Place non-visual elements (e.g., services, value objects) here -->
+
+  </fx:Declarations>
+  <fx:Script>
+    <![CDATA[
+      import mx.events.CloseEvent;
+      import mx.managers.PopUpManager;
+
+      [Bindable]
+      private var _message:String = "";
+      private var _parent:DisplayObject;
+		[Bindable]
+	  private var _title:String = "";
+		[Bindable]
+		private var _nl:String = "\n";
+      
+      private function init():void
+      {
+        
+      }
+    
+      
+      public function set centerRelativeTo(value:DisplayObject):void
+      {
+        _parent = value;
+      }
+      public function get centerRelativeTo():DisplayObject
+      {
+        return _parent;
+      }
+      
+		public function setTitle(val:String):void
+		{
+			_title = val;
+		}
+      public function set message(value:String):void
+      {
+        if (value != null)
+          _message = value;
+        else
+          _message = "";               
+      }
+      public function get message():String
+      {
+        return _message;
+      }
+      
+      public function closePopUp():void
+      {
+        PopUpManager.removePopUp(this);
+      }
+      
+      public function showPopUp():void
+      {
+         PopUpManager.addPopUp(this, _parent, true);          
+         PopUpManager.centerPopUp(this);
+      }
+
+		
+	 
+      
+
+    ]]>
+  </fx:Script>
+	<s:Rect x="30" y="25" width="245" height="175" radiusX="10" radiusY="10">
+		<s:fill><s:SolidColor color="0xFFFFFF"  alpha="0.6"/></s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xFF0000" alpha="0.8" weight="3">				
+			</s:SolidColorStroke>
+		</s:stroke>
+		
+	</s:Rect>
+  <s:VGroup x="55" y="45" width="200"  verticalAlign="middle" color="0xFF0000">
+	   	
+	  <mx:Text id="lblMessage" width="200" fontSize="16" fontWeight="bold" 
+			   text="{_title + _nl + _nl +_message}" textAlign="left" >
+	  </mx:Text>
+  </s:VGroup>
+  </s:Group>

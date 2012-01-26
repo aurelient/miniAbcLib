@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+                xmlns:s="library://ns.adobe.com/flex/spark" 
+                xmlns:mx="library://ns.adobe.com/flex/mx" 
+                xmlns:tangibles="extensions.inf.external.tangibles.*"
+                autoDrawBackground="true" creationComplete="itemrenderer1_creationCompleteHandler(event)"
+                x="{data.PosX}" y="{data.PosY}" rotation="{data.Rotation}">
+
+  <fx:Script>
+    <![CDATA[
+      import extensions.inf.external.tangibles.data.GridRack;
+      import extensions.inf.external.tangibles.events.RackEvent;
+      
+      import mx.events.FlexEvent;
+      
+      import spark.primitives.supportClasses.FilledElement;
+      
+      private var tColors:Timer = new Timer(200);
+      
+      protected function itemrenderer1_creationCompleteHandler(event:FlexEvent):void
+      {
+        addEventListener(RackEvent.CLOSED, rackClosed);
+        tColors.addEventListener(TimerEvent.TIMER, colorsCallback);
+      }
+      
+      protected function tabButton_clickHandler(event:MouseEvent):void
+      {
+        bShadow.color = 0xFF0000;
+        gOpen.visible = false;
+        rExplorer.visible = true;
+        
+        rOpen.fill = new SolidColor(0x0000FF);
+        lOpen.setStyle("color", "0xFFFFFF");
+        tColors.start();
+        
+        dispatchEvent(new RackEvent(RackEvent.OPEN, data as GridRack));
+      }
+      
+      private function colorsCallback(event:TimerEvent):void
+      {
+        if(event.currentTarget != tColors)
+          return;
+        
+        tColors.stop();
+        rOpen.fill = new SolidColor(0xFFFFFF);
+        lOpen.setStyle("color", "0x0000FF");
+      }
+      
+      private function rackClosed(event:RackEvent):void
+      {
+        bShadow.color = 0x0000FF;
+        gOpen.visible = true;
+        rExplorer.visible = false;
+      }
+    ]]>
+  </fx:Script>
+  
+  <s:Group id="gContent" x="{-(data.Width + bShadow.weight)/2}" y="{-(data.Height + bShadow.weight)/2}">
+    
+    <s:Rect id="rRack" radiusX="2" radiusY="2" width="{data.Width}" height="{data.Height}" horizontalCenter="0" verticalCenter="0">
+      <s:stroke>
+        <s:SolidColorStroke id="bShadow" color="0x0000FF" weight="20"/>
+      </s:stroke>
+      <s:fill>
+        <s:SolidColor color="0xCCCCCC" />
+      </s:fill>
+    </s:Rect>
+    
+    <s:Group id="gOpen" visible="true" bottom="10" right="-100" click="tabButton_clickHandler(event)">
+      <s:Rect id="rOpen" width="100" height="200" bottomRightRadiusX="5" bottomRightRadiusY="5" topRightRadiusX="5" topRightRadiusY="5">
+        <s:stroke>
+          <s:SolidColorStroke color="0x0000FF" weight="3"/>
+        </s:stroke>
+        <s:fill>
+          <s:SolidColor color="0xFFFFFF" />
+        </s:fill>
+      </s:Rect>
+      <s:Label id="lOpen" text="Open" fontSize="50" verticalCenter="0" horizontalCenter="0" rotation="-90" color="0x0000FF"/>
+    </s:Group>
+    
+    <s:Group id="gCenter" horizontalCenter="0" verticalCenter="0">
+      <s:Ellipse width="30" height="30">
+        <s:stroke>
+          <s:SolidColorStroke color="0xFFFFFF" weight="2"/>
+        </s:stroke>
+        <s:fill>
+          <s:SolidColor color="0xFF0000" />
+        </s:fill>      
+      </s:Ellipse>
+    </s:Group>
+    
+    <tangibles:TableRackExplorer id="rExplorer"  bottom="10" right="{-(rExplorer.width + 50)}" visible="false" Rack="{data}"/>
+    
+  </s:Group>
+  
+</s:ItemRenderer>

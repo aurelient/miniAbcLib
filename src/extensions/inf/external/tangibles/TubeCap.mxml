@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+                xmlns:s="library://ns.adobe.com/flex/spark" 
+                xmlns:mx="library://ns.adobe.com/flex/mx" 
+                xmlns:tangibles="extensions.inf.external.tangibles.*"
+                click="itemrenderer1_clickHandler(event)"
+                creationComplete="itemrenderer1_creationCompleteHandler(event)"
+                autoDrawBackground="true" width="{data.Rack.Width/data.Rack.Columns}" 
+                height="{data.Rack.Height/data.Rack.Rows}">
+
+  <fx:Script>
+    <![CDATA[
+      import extensions.inf.external.tangibles.data.Tube;
+      import extensions.inf.external.tangibles.events.TubeEvent;
+      
+      import mx.events.FlexEvent;
+      
+      protected function itemrenderer1_clickHandler(event:MouseEvent):void
+      {
+        dispatchEvent(new TubeEvent(TubeEvent.OPEN, data as Tube, true));
+      }
+
+      protected function itemrenderer1_creationCompleteHandler(event:FlexEvent):void
+      {
+        addEventListener(FlexEvent.DATA_CHANGE, dataChanged);
+        setBindings();
+      }
+
+      private function dataChanged(evet:FlexEvent):void
+      {
+        if(data == null)
+          return;
+        setBindings();
+      }
+      
+      private function setBindings():void
+      {
+        dCanvas.Enabler.Palette = document as TableRackExplorer;
+        dCanvas.Enabler.Lines = (data as Tube).LidMarker;
+        dCanvas.Enabler.Colors = (data as Tube).MarkerColors;
+        dCanvas.invalidateDisplayList();
+      }
+      
+    ]]>
+  </fx:Script>
+
+  <s:Ellipse width="{data.Rack.TubeDiameterPx}" height="{data.Rack.TubeDiameterPx}" horizontalCenter="0" verticalCenter="0"
+             visible="{data.IsNew}">
+    <s:stroke>
+      <s:SolidColorStroke color="0x000000" weight="1"/>
+    </s:stroke>
+    <s:fill>
+      <s:SolidColor color="0x999999" />
+    </s:fill>
+  </s:Ellipse>
+
+  <s:Ellipse width="{data.Rack.TubeDiameterPx}" height="{data.Rack.TubeDiameterPx}" horizontalCenter="0" verticalCenter="0"
+             visible="{!data.IsNew}">
+    <s:stroke>
+      <s:SolidColorStroke color="0x000000" weight="1"/>
+    </s:stroke>
+    <s:fill>
+      <s:SolidColor color="0xFFFFFF" />
+    </s:fill>
+  </s:Ellipse>
+  
+  <tangibles:DrawableCanvas id="dCanvas" width="100" height="100" 
+                            scaleX="{data.Rack.TubeDiameterPx / 100}" scaleY="{data.Rack.TubeDiameterPx / 100}"
+                            verticalCenter="0" horizontalCenter="0" backgroundColor="#FFFFFFF" backgroundAlpha="0"/>
+  
+</s:ItemRenderer>

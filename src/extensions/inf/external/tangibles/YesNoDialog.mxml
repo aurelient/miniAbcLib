@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+               xmlns:s="library://ns.adobe.com/flex/spark"
+               xmlns:mx="library://ns.adobe.com/flex/mx"
+               width="308" height="183" close="titlewindow1_closeHandler(event)"
+               creationComplete="init()">
+  <fx:Declarations>
+    <!-- Place non-visual elements (e.g., services, value objects) here -->
+  </fx:Declarations>
+  <fx:Script>
+    <![CDATA[
+      import mx.events.CloseEvent;
+      import mx.managers.PopUpManager;
+
+      [Bindable]
+      private var _message:String = "";
+      private var _callbackFunction:Function;
+      private var _parent:DisplayObject;
+      
+      private function init():void
+      {
+      
+      }
+      /**
+       * YesNoDialog assumes that a callback function has the signature of callbackfunc(bool):void
+       */
+      public function get callback():Function
+      {
+        return _callbackFunction;
+      }
+      /**
+      * YesNoDialog assumes that a callback function has the signature of callbackfunc(bool):void
+      */
+      public function set callback(value:Function):void
+      {
+        _callbackFunction = value;
+      }
+      
+      public function set centerRelativeTo(value:DisplayObject):void
+      {
+        _parent = value;
+      }
+      public function get centerRelativeTo():DisplayObject
+      {
+        return _parent;
+      }
+      
+      public function set message(value:String):void
+      {
+        if (value != null)
+          _message = value;
+        else
+          _message = "";               
+      }
+      public function get message():String
+      {
+        return _message;
+      }
+      
+      private function closePopUp():void
+      {
+        PopUpManager.removePopUp(this);
+      }
+      
+      public function showPopUp():void
+      {
+         PopUpManager.addPopUp(this, _parent, true);          
+         PopUpManager.centerPopUp(this);
+      }
+
+      protected function btnNo_clickHandler(event:MouseEvent):void
+      {        
+        _callbackFunction(false);
+        closePopUp();
+      }
+
+
+      protected function btnYes_clickHandler(event:MouseEvent):void
+      {
+        _callbackFunction(true);
+       closePopUp();
+      }
+
+      protected function titlewindow1_closeHandler(event:CloseEvent):void
+      {
+        btnNo_clickHandler(null);
+      }
+
+    ]]>
+  </fx:Script>
+  <s:Label id="lblMessage" x="9" y="6" width="293" height="63" fontSize="16" fontWeight="bold"
+           text="{_message}" textAlign="left" verticalAlign="middle"/>
+  <s:Button id="btnYes" x="55" y="89" width="80" height="50" label="Yes"
+            click="btnYes_clickHandler(event)" fontSize="20"/>
+  <s:Button id="btnNo" x="162" y="89" width="80" height="50" label="No"
+            click="btnNo_clickHandler(event)" fontSize="20"/>
+</s:TitleWindow>
